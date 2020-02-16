@@ -41,6 +41,12 @@ class CarteClass():
 		''' représentation de notre carte. '''
 		print(''.join(self.carte))
 
+	def cleanScreen():
+		if os.uname().sysname == 'Linux':
+			os.system('clear')
+		else:
+			os.system('cls')
+
 	def _mv_lateral(self, mouvement):
 		''' méthode permettant un déplacement latéral d'un cran vers la gauche
 		ou la droite du personnage.
@@ -154,3 +160,91 @@ class CarteClass():
 			self._mv_vertical(mouvement)
 		else:
 			print('\n[ x ]  déplacement.. failed !')
+	""" Fonction permettant de se déplacer. """
+# On fait ici déplacer notre personnage. Le parcours est régie de la manière suivante :
+#		- <0> : le personnage
+#		- <.> : le personnage avance
+#		- <#> : le personnage est bloque par le mur
+#		- <//> : le personnage traverse la porte
+#		- <?> : le personnage participe à un conversation
+#		- <!> : le personnage bénificie d'une aide... ou le contraire !
+
+# On défini le système de déplacements :
+# On à les variables suivantes :
+#	- parties : notre labyrinthe découpé {numéro:liste}
+#	- parties_inversé : parties inversé {numéro:liste}
+#	- liste_inversé : liste inversée [c,b,a]
+#	- position : emplacement du personnage [liste,indice]
+#	- déplacement : indications de déplacement du personnage [indice, direction]
+#	effacer_ecran()	
+#input()
+	self.cleanScreen()
+
+#	print("\n")
+	if choix == 1:
+		parties = unpickler('partie/parties.txt')
+	elif choix == 0:
+		parties_new = unpickler('partie/parties_new.txt')
+		parties = partie(parties_new)
+		enregistrer(parties, 'partie/parties.txt')
+#		print(parties)
+	afficher_labyrinthe()
+	if pivot == 0:
+		nombre_déplacements, direction_déplacements = pivotement(parties)
+	else:
+		nombre_déplacements, direction_déplacements = list(pivot)
+#		print(pivot)
+#		print(parties)
+	numero_ligne, indice_liste = personnage()
+# On crée des objets qui vont se parcourir à l'envers :
+	variable = len(parties)
+	parties_inversé = dict()
+	while variable > 0:
+		parties_inversé[list(parties.keys())[variable-1]] = list(parties.values())[variable-1]
+		variable -= 1
+
+	liste_inversé = list(parties[numero_ligne])
+	liste_inversé.reverse()
+
+# On défini les différentes issues :
+#	afficher_labyrinthe(parties_inversé)
+#	print(liste_inversé)
+	if direction_déplacements == 'd':
+		i = 0
+		v = 0
+		for i,v in enumerate(parties[numero_ligne]):
+			if i > indice_liste:
+				CheckLong(i,v,nombre_déplacements,direction_déplacements,numero_ligne,indice_liste)
+
+	elif direction_déplacements == 'q':
+		i = 0
+		v = 0
+		for i,v in enumerate(liste_inversé):
+			new_indice_liste = len(parties[numero_ligne]) - indice_liste - 1
+			if i > new_indice_liste:
+				CheckLong(i,v,nombre_déplacements,direction_déplacements,numero_ligne,indice_liste,1)
+
+	elif direction_déplacements == 's':
+		i = 0
+		v = 0
+		for clé,valeur in parties.items():
+			if clé >= numero_ligne:
+				CheckUp(clé,valeur,nombre_déplacements,direction_déplacements,numero_ligne,indice_liste)
+
+	elif direction_déplacements == 'z':
+		i = 0
+		v = 0
+		#new_numero_ligne = len(parties) - numero_ligne
+#		print("numero :", numero_ligne, new_numero_ligne)
+		for clé,valeur in parties_inversé.items():
+			if clé <= numero_ligne:
+				CheckUp(clé,valeur,nombre_déplacements,direction_déplacements,numero_ligne,indice_liste,1)
+
+	else:
+		print("\n<ValueError> Vous devez saisir les bonnes lettres. Voici un rappel :\n\
+- 'z': aller vers le haut\
+- 's': aller vers le bas\n\
+- 'q': aller vers la gauche\
+- 'd': aller vers la droite\n")
+		input("\nContinuer..")
+		return déplacements(1)
